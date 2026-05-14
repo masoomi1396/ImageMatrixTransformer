@@ -113,10 +113,11 @@ def rotatedImage(image, angle, point=(0,0)):
     R,G,B = imageMatrixConversion(image)
     
     newWidth, newHeight, offsetX, offsetY = findingBoundryOfRotation(width, height, angle, point)
+    
+    
     newR = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
     newG = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
     newB = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
-    
     
     
     for y in range(newHeight):
@@ -131,6 +132,7 @@ def rotatedImage(image, angle, point=(0,0)):
             
             x_src = x_old + rotationX
             y_src = y_old + rotationY
+            
             
             if x_src < 0 or x_src >= width or y_src < 0 or y_src >= height:
                 newR[y][x],newG[y][x],newB[y][x] = 0,0,0
@@ -157,11 +159,35 @@ def rotatedImage(image, angle, point=(0,0)):
             green = ( green_00 * w_00 + green_01 * w_01 + green_10 * w_10 + green_11 * w_11 )
             blue = (blue_00 * w_00 + blue_01 * w_01 + blue_10 * w_10 + blue_11 * w_11)
             
+        
+            
             newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
             
     newImage = matrixImageConversion(newR, newG, newB)
     newImage.show()
     
+def grayScaleFunctino(image):
+    width, height = image.size
+
+    R,G,B = imageMatrixConversion(image)
+    newR = [[0 for _ in range(width)] for _ in range(height)]
+    newG = [[0 for _ in range(width)] for _ in range(height)]
+    newB = [[0 for _ in range(width)] for _ in range(height)]
+    gray = 0
+    for y in range(height):
+        for x in range(width):
+            gray =  min(255, int(R[y][x] * 0.299 +  G[y][x] * 0.578 +  B[y][x] * 0.114))
+            gray = max(0, gray)
+            
+            newR[y][x] = gray
+            newG[y][x] = gray
+            newB[y][x] = gray
+    newImage = matrixImageConversion(newR, newG, newB)
+    newImage.show()
+
+
 img = Image.open("Test.png")
 
-rotatedImage(img, 90, (500,100))
+width,height = img.size
+
+grayScaleFunctino(img)
