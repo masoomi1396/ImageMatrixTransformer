@@ -64,7 +64,7 @@ def scalingImage(image, factor):
             newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
             
     newImage = matrixImageConversion(newR, newG, newB)
-    newImage.show()
+    return newImage
             
 
 def findingBoundryOfRotation(width,height,angle,point):
@@ -164,7 +164,7 @@ def rotatedImage(image, angle, point=(0,0)):
             newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
             
     newImage = matrixImageConversion(newR, newG, newB)
-    newImage.show()
+    return newImage
 
     
 def grayScaleFunctino(image):
@@ -184,7 +184,7 @@ def grayScaleFunctino(image):
             newG[y][x] = gray
             newB[y][x] = gray
     newImage = matrixImageConversion(newR, newG, newB)
-    newImage.show()
+    return newImage
 
 
 def findingBoundryOfSkew(width, height, skewMatrix):
@@ -260,13 +260,35 @@ def skewImage(image, skewFactor, type="h"):
             
             newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
     newImage = matrixImageConversion(newR, newG, newB)
-    newImage.show()        
-    
+    return newImage        
     
 
+def edgeDetection(image):
+   grayImage = grayScaleFunctino(image)
+   width, height = grayImage.size
+   R,G,B = imageMatrixConversion(grayImage)
+   newR = [[0 for _ in range(width)] for _ in range(height)]
+   newG = [[0 for _ in range(width)] for _ in range(height)]
+   newB = [[0 for _ in range(width)] for _ in range(height)]
+   for y in range(height):
+       for x in range(width):
+           if y+1 >= height or x+1 >= width or x == 0 or y == 0:
+               newR[y][x] = 0
+               newG[y][x] = 0
+               newB[y][x] = 0
+               continue
+           Gx = R[y][x+1] - R[y][x - 1]
+           Gy = R[y+1][x] - R[y - 1][x]
+           edge = int(math.sqrt((Gx ** 2) + (Gy ** 2)))
+           
+           newR[y][x],newG[y][x],newB[y][x] = edge,edge,edge
+   newImage = matrixImageConversion(newR, newG, newB)
+   return newImage
 
 img = Image.open("Test.png")
 
 width,height = img.size
 
-skewImage(img, 0.3, 'v')
+newImage = edgeDetection(img)
+
+newImage.show()
