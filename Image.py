@@ -165,6 +165,7 @@ def rotatedImage(image, angle, point=(0,0)):
             
     newImage = matrixImageConversion(newR, newG, newB)
     newImage.show()
+
     
 def grayScaleFunctino(image):
     width, height = image.size
@@ -186,8 +187,86 @@ def grayScaleFunctino(image):
     newImage.show()
 
 
+def findingBoundryOfSkew(width, height, skewMatrix):
+    x1 = 0
+    y1 = 0
+    x2 = width - 1
+    y2 = height - 1
+    xNew = []
+    yNew = []
+    corners = [(x1,y1),(x1,y2), (x2,y1), (x2,y2)]
+    
+    for corner in corners:
+        point = [[corner[0]], [corner[1]]]
+        newPoint = matrixMultiplication(skewMatrix, point)
+        xNew.append(newPoint[0][0])
+        yNew.append(newPoint[1][0])
+    xNew.sort()
+    yNew.sort()
+    
+    
+    newWidth = xNew[3] - xNew[0] 
+    newHeight = yNew[3] - yNew[0] 
+    
+    
+    return math.ceil(newWidth), math.ceil(newHeight)
+
+
+def skewImage(image, skewFactor, type="h"):
+    if type.lower() == 'h':
+        skewMatrix = [[1,skewFactor],[0,1]]
+        inverseSkewMatrix = [[1,-skewFactor],[0,1]]
+    else:
+        skewMatrix = [[1,0],[skewFactor,1]]
+        inverseSkewMatrix = [[1,0],[-skewFactor,1]]
+    width, height = image.size
+    newWidth,newHeight = findingBoundryOfSkew(width, height, skewMatrix)
+    R,G,B = imageMatrixConversion(image)
+    newR = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
+    newG = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
+    newB = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
+    for y in range(newHeight):
+        for x in range(newWidth):
+            point = [[x],[y]]
+            oldPoint = matrixMultiplication(inverseSkewMatrix, point)
+            x_src = oldPoint[0][0]
+            y_src = oldPoint[1][0]
+            if x_src < 0 or x_src >= width or y_src < 0 or y_src >= height:
+                newR[y][x],newG[y][x],newB[y][x] = 0,0,0
+                continue
+            
+            y1 = math.floor(y_src)
+            y2 = min(y1 + 1, height - 1)
+            dY = y_src - y1
+            
+            x1 = math.floor(x_src)
+            x2 = min(x1 + 1, width - 1)
+            dX = x_src - x1
+            
+            red_00, red_01, red_10, red_11 = R[y1][x1], R[y1][x2], R[y2][x1], R[y2][x2]
+            green_00, green_01, green_10, green_11 = G[y1][x1], G[y1][x2], G[y2][x1], G[y2][x2]
+            blue_00,blue_01,blue_10,blue_11 = B[y1][x1], B[y1][x2], B[y2][x1], B[y2][x2]
+            
+            w_00 = (1 - dX) * (1 - dY)
+            w_01 = (dX) * (1 - dY)
+            w_10 = (1 - dX) * (dY)
+            w_11 = (dX) * (dY)
+            
+            red = ( red_00 * w_00 + red_01 * w_01 + red_10 * w_10 + red_11 * w_11 )
+            green = ( green_00 * w_00 + green_01 * w_01 + green_10 * w_10 + green_11 * w_11 )
+            blue = (blue_00 * w_00 + blue_01 * w_01 + blue_10 * w_10 + blue_11 * w_11)
+            
+        
+            
+            newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
+    newImage = matrixImageConversion(newR, newG, newB)
+    newImage.show()        
+    
+    
+
+
 img = Image.open("Test.png")
 
 width,height = img.size
 
-grayScaleFunctino(img)
+skewImage(img, 0.3, 'v')
