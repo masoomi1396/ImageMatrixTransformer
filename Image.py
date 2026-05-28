@@ -1,6 +1,6 @@
 from Matrix import *
 from PIL import Image
-import math
+import math 
 
 def imageMatrixConversion(image):
     image = image.convert("RGB")
@@ -30,6 +30,21 @@ def matrixImageConversion(R,G,B):
     return newImage
 
 
+def bilinearInterpolation(dX, dY, red_00, red_01, red_10, red_11, green_00, green_01, green_10, green_11, blue_00, blue_01, blue_10, blue_11):
+    
+    
+    w_00 = (1 - dX) * (1 - dY)
+    w_01 = (dX) * (1 - dY)
+    w_10 = (1 - dX) * (dY)
+    w_11 = (dX) * (dY)
+    
+    red = ( red_00 * w_00 + red_01 * w_01 + red_10 * w_10 + red_11 * w_11 )
+    green = ( green_00 * w_00 + green_01 * w_01 + green_10 * w_10 + green_11 * w_11 )
+    blue = (blue_00 * w_00 + blue_01 * w_01 + blue_10 * w_10 + blue_11 * w_11)
+    
+    return int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
+
+
 def scalingImage(image, factor):
     width, height = image.size
     newWidth, newHeight = int(width * factor), int(height * factor)
@@ -37,13 +52,23 @@ def scalingImage(image, factor):
     newR = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
     newG = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
     newB = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
+    inverseScalingMatrix = [[1/factor,0],[0,1/factor]]  #scalingMatrix = [[factor,0],[0,factor]]
+    
     for y in range(newHeight):
-        y_old = y * ( (height - 1) / (newHeight - 1) )
-        y1 = math.floor(y_old)
-        y2 = min(y1 + 1, height - 1)
-        dY = y_old - y1
+        #y_old = y * ( (height - 1) / (newHeight - 1) ) 
         for x in range(newWidth):
-            x_old = x * ( (width - 1) / (newWidth - 1) )
+            
+            point = [[x],[y]]
+            oldPoint = matrixMultiplication(inverseScalingMatrix, point)
+            
+            #x_old = x * ( (width - 1) / (newWidth - 1) )
+            x_old = oldPoint[0][0]
+            y_old = oldPoint[1][0]
+            
+            y1 = math.floor(y_old)
+            y2 = min(y1 + 1, height - 1)
+            dY = y_old - y1
+            
             x1 = math.floor(x_old)
             x2 = min(x1 + 1, width - 1)
             dX = x_old - x1
@@ -52,16 +77,10 @@ def scalingImage(image, factor):
             green_00, green_01, green_10, green_11 = G[y1][x1], G[y1][x2], G[y2][x1], G[y2][x2]
             blue_00,blue_01,blue_10,blue_11 = B[y1][x1], B[y1][x2], B[y2][x1], B[y2][x2]
             
-            w_00 = (1 - dX) * (1 - dY)
-            w_01 = (dX) * (1 - dY)
-            w_10 = (1 - dX) * (dY)
-            w_11 = (dX) * (dY)
+            red,green,blue = bilinearInterpolation(dX, dY, red_00, red_01, red_10, red_11, green_00, green_01, green_10, green_11, blue_00, blue_01, blue_10, blue_11)
             
-            red = ( red_00 * w_00 + red_01 * w_01 + red_10 * w_10 + red_11 * w_11 )
-            green = ( green_00 * w_00 + green_01 * w_01 + green_10 * w_10 + green_11 * w_11 )
-            blue = (blue_00 * w_00 + blue_01 * w_01 + blue_10 * w_10 + blue_11 * w_11)
             
-            newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
+            newR[y][x],newG[y][x],newB[y][x] = red, green, blue
             
     newImage = matrixImageConversion(newR, newG, newB)
     return newImage
@@ -99,8 +118,6 @@ def findingBoundryOfRotation(width,height,angle,point):
     offsetY = -yNew[0]
     
     return math.ceil(newWidth), math.ceil(newHeight), offsetX, offsetY
-    
-    pass
 
 
 def rotatedImage(image, angle, point=(0,0)):
@@ -150,18 +167,11 @@ def rotatedImage(image, angle, point=(0,0)):
             green_00, green_01, green_10, green_11 = G[y1][x1], G[y1][x2], G[y2][x1], G[y2][x2]
             blue_00,blue_01,blue_10,blue_11 = B[y1][x1], B[y1][x2], B[y2][x1], B[y2][x2]
             
-            w_00 = (1 - dX) * (1 - dY)
-            w_01 = (dX) * (1 - dY)
-            w_10 = (1 - dX) * (dY)
-            w_11 = (dX) * (dY)
-            
-            red = ( red_00 * w_00 + red_01 * w_01 + red_10 * w_10 + red_11 * w_11 )
-            green = ( green_00 * w_00 + green_01 * w_01 + green_10 * w_10 + green_11 * w_11 )
-            blue = (blue_00 * w_00 + blue_01 * w_01 + blue_10 * w_10 + blue_11 * w_11)
-            
+           
+            red,green,blue = bilinearInterpolation(dX, dY, red_00, red_01, red_10, red_11, green_00, green_01, green_10, green_11, blue_00, blue_01, blue_10, blue_11)
         
             
-            newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
+            newR[y][x],newG[y][x],newB[y][x] = red, green, blue
             
     newImage = matrixImageConversion(newR, newG, newB)
     return newImage
@@ -247,18 +257,12 @@ def skewImage(image, skewFactor, type="h"):
             green_00, green_01, green_10, green_11 = G[y1][x1], G[y1][x2], G[y2][x1], G[y2][x2]
             blue_00,blue_01,blue_10,blue_11 = B[y1][x1], B[y1][x2], B[y2][x1], B[y2][x2]
             
-            w_00 = (1 - dX) * (1 - dY)
-            w_01 = (dX) * (1 - dY)
-            w_10 = (1 - dX) * (dY)
-            w_11 = (dX) * (dY)
             
-            red = ( red_00 * w_00 + red_01 * w_01 + red_10 * w_10 + red_11 * w_11 )
-            green = ( green_00 * w_00 + green_01 * w_01 + green_10 * w_10 + green_11 * w_11 )
-            blue = (blue_00 * w_00 + blue_01 * w_01 + blue_10 * w_10 + blue_11 * w_11)
+            red,green,blue = bilinearInterpolation(dX, dY, red_00, red_01, red_10, red_11, green_00, green_01, green_10, green_11, blue_00, blue_01, blue_10, blue_11)
             
         
             
-            newR[y][x],newG[y][x],newB[y][x] = int(min(255,max(red,0))),int(min(255,max(green,0))),int(min(255,max(blue,0)))
+            newR[y][x],newG[y][x],newB[y][x] = red,green,blue
     newImage = matrixImageConversion(newR, newG, newB)
     return newImage        
     
@@ -267,6 +271,7 @@ def edgeDetection(image):
    grayImage = grayScaleFunctino(image)
    width, height = grayImage.size
    R,G,B = imageMatrixConversion(grayImage)
+   I = R
    newR = [[0 for _ in range(width)] for _ in range(height)]
    newG = [[0 for _ in range(width)] for _ in range(height)]
    newB = [[0 for _ in range(width)] for _ in range(height)]
@@ -277,8 +282,8 @@ def edgeDetection(image):
                newG[y][x] = 0
                newB[y][x] = 0
                continue
-           Gx = R[y][x+1] - R[y][x - 1]
-           Gy = R[y+1][x] - R[y - 1][x]
+           Gx = I[y][x+1] - I[y][x - 1]
+           Gy = I[y+1][x] - I[y - 1][x]
            edge = int(math.sqrt((Gx ** 2) + (Gy ** 2)))
            
            newR[y][x],newG[y][x],newB[y][x] = edge,edge,edge
@@ -289,6 +294,6 @@ img = Image.open("Test.png")
 
 width,height = img.size
 
-newImage = edgeDetection(img)
+newImage = rotatedImage(img,30)
 
 newImage.show()
