@@ -114,11 +114,6 @@ All geometric image transformations were implemented using **matrix-based affine
 
 ---
 
-## 🔒 Note
-
-This is a group project. The repository is private until submission in accordance with academic integrity policies.
-
----
 
 ## 🚀 Technologies
 
