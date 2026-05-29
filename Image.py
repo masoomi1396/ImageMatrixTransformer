@@ -95,6 +95,8 @@ def findingBoundryOfRotation(width,height,angle,point):
     y1 = 0
     y2 = height - 1
     
+    rotationMatrix = [[cosAngle, -sinAngle],[sinAngle, cosAngle]]
+    
     xNew = []
     yNew = []
     corners = [(x1,y1),(x1,y2),(x2,y1),(x2,y2)]
@@ -104,8 +106,17 @@ def findingBoundryOfRotation(width,height,angle,point):
         y = corner[1]
         xShifted = x - point[0]
         yShifted = y - point[1]
-        xRot =  xShifted * cosAngle - yShifted * sinAngle
-        yRot =  xShifted * sinAngle + yShifted * cosAngle
+        
+        pointXY = [[xShifted], [yShifted]]
+        
+        xyRot = matrixMultiplication(rotationMatrix, pointXY)
+        
+        #xRot =  xShifted * cosAngle - yShifted * sinAngle
+        #yRot =  xShifted * sinAngle + yShifted * cosAngle
+        
+        xRot = xyRot[0][0]
+        yRot = xyRot[1][0]
+        
         xNew.append(xRot + point[0]) 
         yNew.append(yRot + point[1]) 
     xNew.sort()
@@ -136,7 +147,7 @@ def rotatedImage(image, angle, point=(0,0)):
     newG = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
     newB = [[0 for _ in range(newWidth)] for _ in range(newHeight)]
     
-    
+    inverseRotationMatrix = [[cosAngle, sinAngle], [-sinAngle, cosAngle]] #rotationMatrix = [[cosAngle, -sinAngle],[sinAngle, cosAngle]]
     for y in range(newHeight):
         yShifted = y - offsetY
         yCentered = yShifted - rotationY
@@ -144,8 +155,13 @@ def rotatedImage(image, angle, point=(0,0)):
             xShifted = x - offsetX
             xCentered = xShifted - rotationX
             
-            x_old = xCentered * cosAngle + yCentered * sinAngle
-            y_old = (-xCentered) * sinAngle + yCentered * cosAngle
+            #x_old = xCentered * cosAngle + yCentered * sinAngle
+            #y_old = (-xCentered) * sinAngle + yCentered * cosAngle
+            point = [[xCentered],[yCentered]]
+            oldPoint = matrixMultiplication(inverseRotationMatrix, point)
+            
+            x_old = oldPoint[0][0]
+            y_old = oldPoint[1][0]
             
             x_src = x_old + rotationX
             y_src = y_old + rotationY
