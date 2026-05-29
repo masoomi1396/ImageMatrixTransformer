@@ -193,7 +193,7 @@ def rotatedImage(image, angle, point=(0,0)):
     return newImage
 
     
-def grayScaleFunctino(image):
+def grayScaleFunction(image):
     width, height = image.size
 
     R,G,B = imageMatrixConversion(image)
@@ -284,7 +284,7 @@ def skewImage(image, skewFactor, type="h"):
     
 
 def edgeDetection(image):
-   grayImage = grayScaleFunctino(image)
+   grayImage = grayScaleFunction(image)
    width, height = grayImage.size
    R,G,B = imageMatrixConversion(grayImage)
    I = R
@@ -310,6 +310,6 @@ img = Image.open("Test.png")
 
 width,height = img.size
 
-newImage = rotatedImage(img,30)
+newImage = grayScaleFunction(img)
 
 newImage.show()
